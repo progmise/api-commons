@@ -19,7 +19,10 @@ jobs:
           java-version: '21'
 
       - name: Build
-        run: ./gradlew build --no-daemon
+        run: ./gradlew assemble --no-daemon
+
+      - name: Test
+        run: ./gradlew test --no-daemon
 
       - name: Publish to Maven Central
         env:
