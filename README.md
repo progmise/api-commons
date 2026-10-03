@@ -1,37 +1,34 @@
 # api-utils
 
-[![](https://jitpack.io/v/progmise/api-utils.svg)](https://jitpack.io/#progmise/api-utils)
-
-Shared Kotlin utility library for Spring Boot APIs. Distributed via [JitPack](https://jitpack.io).
+Shared Java utility library for Spring Boot APIs. Published to **Maven Central**
+as `io.github.progmise:api-utils`.
 
 ## What's inside
 
 ```
-com.progmise.utils
+io.github.progmise.utils
 ├── config/          Auto-configuration (ApiExceptionHandler, FeatureToggleHelper beans)
 ├── delivery/        ListPaginationDTO (HAL pagination links) + PaginationRequestBuilder
 ├── dto/             ApiError + ErrorsResponse — {"errors":[{"code","message","level","description"}]}
-├── enums/           ErrorLevel, LinkRef, EnumCompanion/EnumUtil helpers
+├── enums/           ErrorLevel, LinkRef
 ├── exception/       ExceptionCode, RequestException, BadRequestException, ApiExceptionHandler
 ├── infrastructure/  Cache iface, RCache (Redisson), NoOpCache, FeatureToggleStateRepository
 │                    (caching wrapper over JDBC StateRepository), FeatureToggleHelper
-├── util/            Constants, extension functions, JsonMapper, generate*Exception helpers
+├── util/            Constants, Extensions, JsonMapper, ExceptionCodeGenerators
 └── validator/       Validator iface, CompositeValidator, BaseValidator + generic validators
                      (Integer/Numeric/Decimal/MajorOrEqual/Date/Length)
 ```
 
+The API surface is plain Java (no Kotlin-only constructs), so it can be consumed
+idiomatically from Java and Kotlin. Generic deserialization uses explicit type
+tokens: `cache.get(key, Schedule.class)` or
+`cache.getObject(key, new TypeReference<List<X>>() {})`.
+
 ## Usage
 
-Add the JitPack repository and the dependency:
-
 ```kotlin
-repositories {
-    mavenCentral()
-    maven("https://jitpack.io")
-}
-
 dependencies {
-    implementation("com.github.progmise:api-utils:0.1.1")
+    implementation("io.github.progmise:api-utils:0.2.0")
 }
 ```
 
@@ -43,7 +40,7 @@ Beans are auto-configured when the jar is on the classpath:
   `@RestControllerAdvice` (or bean) for domain exceptions — or declare an
   `ApiExceptionHandler` bean to fully override it.
 - `FeatureToggleHelper` — created automatically when a Togglz `FeatureManager`
-  bean exists. Exposes `isActive(feature: Enum<*>)` / `isActive(name: String)`.
+  bean exists. Exposes `isActive(Enum<?>)` / `isActive(String)`.
 
 Everything else (validators, `RCache`, `FeatureToggleStateRepository`, pagination)
 is instantiated explicitly — see the consuming projects for wiring examples.
@@ -55,16 +52,32 @@ is instantiated explicitly — see the consuming projects for wiring examples.
 ## Development
 
 ```bash
-./gradlew build                # compile + ktlint + tests
-./gradlew publishToMavenLocal  # install to ~/.m2 for local consumers
+./gradlew build   # compile + unit tests
 ```
 
 ## Releasing
 
-Tag a commit and push the tag; JitPack builds the artifact on first request.
+Publishing is fully automated by GitHub Actions — `build.gradle.kts` carries **no**
+publishing configuration. The workflow applies `.github/publish.init.gradle.kts`,
+which injects the `com.vanniktech.maven.publish` plugin, GPG signing and all POM
+metadata at publish time:
 
 ```bash
-git tag 0.1.0 && git push origin 0.1.0
+git tag 0.3.0 && git push origin 0.3.0
+# → tag push triggers .github/workflows/publish.yml → publishToMavenCentral
 ```
 
 Bump `version` in `build.gradle.kts` to match the tag.
+
+### One-time setup
+
+Repository secrets required by the workflow:
+
+| Secret | Value |
+|---|---|
+| `SONATYPE_USERNAME` / `SONATYPE_TOKEN` | Central Portal user token (Account → Generate User Token) |
+| `GPG_PRIVATE_KEY` | ASCII-armored private key used for signing |
+| `GPG_PASSPHRASE` | The key's passphrase |
+
+The namespace `io.github.progmise` must be verified in the Central Portal
+(automatic when the account is linked to the `progmise` GitHub account).

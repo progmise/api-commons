@@ -1,7 +1,7 @@
 # AGENTS.md
 
-Guide for working on **api-utils** — a shared Kotlin library for Spring Boot APIs,
-distributed via JitPack (`com.github.progmise:api-utils:<tag>`).
+Guide for working on **api-utils** — a shared Java library for Spring Boot APIs,
+published to Maven Central as `io.github.progmise:api-utils`.
 
 ## Golden rule
 
@@ -16,42 +16,48 @@ Keep it **generic** — no domain logic, no app-specific names (nothing like
 | `config` | Spring Boot auto-config (`@AutoConfiguration`) — registered via `META-INF/spring/...AutoConfiguration.imports` |
 | `delivery` | `ListPaginationDTO` (HAL links) + request builders (e.g. `PaginationRequestBuilder`) |
 | `dto` | `ApiError`, `ErrorsResponse` — the `{"errors":[{code,message,level,description}]}` contract |
-| `enums` | `ErrorLevel`, `LinkRef`, `EnumCompanion`/`EnumUtil` |
+| `enums` | `ErrorLevel`, `LinkRef` |
 | `exception` | `ExceptionCode`, `RequestException`, `BadRequestException`, `ApiExceptionHandler` |
 | `infrastructure` | `Cache` iface, `RCache` (Redisson), `NoOpCache`, `FeatureToggleStateRepository`, `FeatureToggleHelper` |
-| `util` | `Constants`, extensions (`logger()`, `typeRef()`, `ifNotNullAndBlank`, ...), `JsonMapper`, `generate*Exception` helpers |
+| `util` | `Constants`, `Extensions`, `JsonMapper`, `ExceptionCodeGenerators` |
 | `validator` | `Validator` iface, `CompositeValidator`, `BaseValidator`, generic validators |
 
 ## Conventions
 
-- Public APIs must be usable from Kotlin **and** reasonable from Java: prefer classes
-  and objects; extension functions are fine as *helpers*, not as the only way to do
-  something.
-- Auto-configured beans: always `@ConditionalOnMissingBean` so consumers can override;
-  `@ConditionalOnBean`/`@ConditionalOnProperty` for optional integrations.
-- Errors: consumers throw `RequestException`/`BadRequestException`; the handler maps
-  them to the shared error contract. Domain exceptions stay in the app with their
-  own `@RestControllerAdvice`.
+- **Pure Java public API** — the lib is consumed by Kotlin apps too, so avoid
+  anything that maps awkwardly: no Kotlin-only constructs, prefer `Class<T>` /
+  Jackson `TypeReference<T>` type tokens for generics.
+- Auto-configured beans: always `@ConditionalOnMissingBean` so consumers can
+  override; `@ConditionalOnBean`/`@ConditionalOnProperty` for optional integrations.
+- Errors: consumers throw `RequestException`/`BadRequestException`; the handler
+  maps them to the shared error contract. Domain exceptions stay in the app with
+  their own `@RestControllerAdvice`.
 - `RCache` must stay **fail-open**: Redis down ⇒ null/false, never throw.
-- Dependencies: public types in signatures ⇒ `api(...)`; internal only ⇒ `implementation(...)`.
+- Dependencies: public types in signatures ⇒ `api(...)`; internal only ⇒
+  `implementation(...)`.
 - Never add employer-specific/proprietary code, internal endpoints, or credentials.
 
 ## Verify before done
 
 ```bash
-./gradlew build                # compile + ktlint + unit tests
-./gradlew publishToMavenLocal  # local install for consumer testing
+./gradlew build    # compile + unit tests
+
+# validate the full publishing pipeline locally (requires the signing env vars):
+export ORG_GRADLE_PROJECT_signingInMemoryKey="$(cat key.asc)"
+export ORG_GRADLE_PROJECT_signingInMemoryKeyPassword="..."
+./gradlew publishToMavenLocal -I .github/publish.init.gradle.kts
 ```
 
 ## Release
 
-Bump `version` in `build.gradle.kts`, tag `git tag X.Y.Z`, push the tag.
-Consumers pin the tag via `com.github.progmise:api-utils:X.Y.Z`.
-Consumers may also keep `mavenLocal()` for local iteration (`publishToMavenLocal`).
+`build.gradle.kts` intentionally has **zero** publishing config — it is injected
+in CI by `.github/publish.init.gradle.kts` (applied with Gradle's `-I` flag).
+Pushing a tag runs `.github/workflows/publish.yml` → `publishToMavenCentral`
+with `SONATYPE_*`/`GPG_*` repository secrets. Bump `version` to match the tag.
 
 ## Consumers
 
 - `amortization-api` (`C:\Users\Leonel\Documents\kotlin-workspace\amortization-api`)
 
 When promoting code out of a consumer: move the generic shape here, keep domain
-logic in the app, and update **all** imports (`.kt`, tests, yaml, docs).
+logic in the app, and update **all** imports (sources, tests, yaml, docs).
