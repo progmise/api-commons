@@ -1,5 +1,7 @@
 # api-utils
 
+[![](https://jitpack.io/v/progmise/api-utils.svg)](https://jitpack.io/#progmise/api-utils)
+
 Shared Kotlin utility library for Spring Boot APIs. Distributed via [JitPack](https://jitpack.io).
 
 ## What's inside
@@ -29,7 +31,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.progmise:api-utils:0.1.0")
+    implementation("com.github.progmise:api-utils:0.1.1")
 }
 ```
 
