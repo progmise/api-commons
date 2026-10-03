@@ -24,6 +24,19 @@ jobs:
       - name: Test
         run: ./gradlew test --no-daemon
 
+      - name: Generate dependency lockfile
+        run: ./gradlew dependencies --write-locks --no-daemon -I .github/security.init.gradle.kts
+
+      - name: Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          scanners: 'vuln,secret'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
+
       - name: Publish to Maven Central
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_USERNAME }}
