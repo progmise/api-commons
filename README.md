@@ -86,18 +86,20 @@ Repository secrets required by the workflow:
 | `SONATYPE_USERNAME` / `SONATYPE_TOKEN` | Central Portal user token (Account → Generate User Token) |
 | `GPG_PRIVATE_KEY` | ASCII-armored private key used for signing |
 | `GPG_PASSPHRASE` | The key's passphrase |
+| `GRAFANA_OTLP_ENDPOINT` | *(optional)* OTLP gateway URL for the `tracing` job (Grafana Cloud free tier) |
+| `GRAFANA_OTLP_AUTH` | *(optional)* `base64("<instance-id>:<api-token>")` for that gateway |
 
 The namespace `io.github.progmise` must be verified in the Central Portal
 (automatic when the account is linked to the `progmise` GitHub account).
+
+Every CI run also uploads its reports as artifacts (30-day retention): test +
+JaCoCo HTML, `trivy-results.txt`, `semgrep-results.txt`.
 
 ## Not ported (possible future work)
 
 Jobs the reference pipeline had that were skipped because they lack a
 worthwhile free equivalent today:
 
-- **Tracing/telemetry** — internal observability action. Feasible free path:
-  OTel exporter → Grafana Cloud free tier; skipped (extra account + infra,
-  GitHub already shows timings).
 - **Threat Modeling validation** — enterprise-internal, no free equivalent.
 - **SCQA** — SonarCloud is free for *public* repos only; could be enabled here
   later.

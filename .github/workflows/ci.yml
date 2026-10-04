@@ -33,6 +33,16 @@ jobs:
             printf "- Branches: **%.1f%%** (%d/%d)\n", (bc+bm)? bc/(bc+bm)*100 : 100, bc, bc+bm >> ENVIRON["GITHUB_STEP_SUMMARY"]
           }' build/reports/jacoco/test/jacocoTestReport.csv
 
+      - name: Upload test & coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports
+          path: |
+            build/reports/tests/
+            build/reports/jacoco/
+          retention-days: 30
+
   trivy:
     runs-on: ubuntu-latest
     steps:
@@ -62,6 +72,15 @@ jobs:
           skip-setup-trivy: true
           ignore-unfixed: true
           exit-code: '1'
+          output: 'trivy-results.txt'
+
+      - name: Upload Trivy report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-report
+          path: trivy-results.txt
+          retention-days: 30
 
   semgrep:
     runs-on: ubuntu-latest
@@ -69,7 +88,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Semgrep SAST
-        run: pipx run semgrep scan --config p/java --error --metrics=off
+        run: pipx run semgrep scan --config p/java --error --metrics=off --output semgrep-results.txt
+
+      - name: Upload Semgrep report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semgrep-report
+          path: semgrep-results.txt
+          retention-days: 30
 
   summary:
     runs-on: ubuntu-latest
@@ -87,10 +114,51 @@ jobs:
             echo "| Semgrep (SAST) | ${{ needs.semgrep.result }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
+  # Emits one OTel span per job to Grafana Cloud (OTLP/HTTP). Skips silently
+  # unless GRAFANA_OTLP_ENDPOINT + GRAFANA_OTLP_AUTH secrets are configured.
+  tracing:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [build, trivy, semgrep]
+    env:
+      JOB_RESULTS: ${{ toJSON(needs) }}
+      OTLP_ENDPOINT: ${{ secrets.GRAFANA_OTLP_ENDPOINT }}
+      OTLP_AUTH: ${{ secrets.GRAFANA_OTLP_AUTH }}
+    steps:
+      - name: Emit run telemetry (OTLP/HTTP)
+        run: |
+          if [ -z "$OTLP_ENDPOINT" ] || [ -z "$OTLP_AUTH" ]; then
+            echo "GRAFANA_OTLP_* secrets not configured — skipping tracing"
+            exit 0
+          fi
+          NOW=$(date +%s%N)
+          TRACE_ID=$(echo "${{ github.run_id }}${{ github.run_attempt }}${{ github.sha }}" | sha256sum | cut -c1-32)
+          SPANS="[]"
+          for job in build trivy semgrep; do
+            result=$(echo "$JOB_RESULTS" | jq -r ".$job.result")
+            status=2; { [ "$result" = "success" ] || [ "$result" = "skipped" ]; } && status=1
+            span_id=$(echo "${{ github.run_id }}-$job" | md5sum | cut -c1-16)
+            SPANS=$(echo "$SPANS" | jq --arg n "$job" --arg t "$TRACE_ID" --arg s "$span_id" \
+              --arg st "$NOW" --arg r "$result" --argjson c "$status" \
+              '. + [{traceId:$t,spanId:$s,name:$n,kind:1,startTimeUnixNano:$st,endTimeUnixNano:$st,attributes:[{key:"job.result",value:{stringValue:$r}}],status:{code:$c}}]')
+          done
+          jq -n --arg repo "${{ github.repository }}" --arg wf "${{ github.workflow }}" \
+            --arg sha "${{ github.sha }}" --arg ref "${{ github.ref_name }}" \
+            --arg run "${{ github.run_id }}" --arg actor "${{ github.actor }}" --argjson spans "$SPANS" \
+            '{resourceSpans:[{resource:{attributes:[
+              {key:"service.name",value:{stringValue:$repo}},
+              {key:"ci.workflow",value:{stringValue:$wf}},
+              {key:"ci.run_id",value:{stringValue:$run}},
+              {key:"vcs.ref",value:{stringValue:$sha}},
+              {key:"vcs.branch",value:{stringValue:$ref}},
+              {key:"ci.actor",value:{stringValue:$actor}}]},
+              scopeSpans:[{scope:{name:"github-actions"},spans:$spans}]}]}' \
+            | curl -sf -X POST "$OTLP_ENDPOINT/v1/traces" \
+                -H "Authorization: Basic $OTLP_AUTH" -H "Content-Type: application/json" -d @-
+          echo "Telemetry emitted for run ${{ github.run_id }}"
+
 # ---------------------------------------------------------------------------
 # Not ported from the reference pipeline (see README "Not ported"):
-# - Tracing/telemetry: needs an observability backend; free path is an OTel
-#   exporter to Grafana Cloud free tier (extra account + setup, skipped).
 # - Threat Modeling validation: enterprise-internal tool, no free equivalent.
 # - SCQA: SonarCloud is free for public repos only — could be enabled later.
 # - CodeQL: free for public repos only (this repo may be private).
