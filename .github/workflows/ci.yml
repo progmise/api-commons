@@ -50,7 +50,7 @@ jobs:
         run: ./gradlew dependencies --write-locks --no-daemon -I .github/security.init.gradle.kts
 
       - name: Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.33.1
         with:
           scan-type: 'fs'
           scan-ref: '.'
