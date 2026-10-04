@@ -84,3 +84,16 @@ jobs:
             echo "| Trivy (SCA + secrets) | ${{ needs.trivy.result }} |"
             echo "| Semgrep (SAST) | ${{ needs.semgrep.result }} |"
           } >> "$GITHUB_STEP_SUMMARY"
+
+# ---------------------------------------------------------------------------
+# Not ported from the reference pipeline (see README "Not ported"):
+# - Tracing/telemetry: needs an observability backend; free path is an OTel
+#   exporter to Grafana Cloud free tier (extra account + setup, skipped).
+# - Threat Modeling validation: enterprise-internal tool, no free equivalent.
+# - SCQA: SonarCloud is free for public repos only — could be enabled later.
+# - CodeQL: free for public repos only (this repo may be private).
+# - Required status checks on protected branches: pending first CI run to pin
+#   the exact check names.
+# - Commit/ticket validation: commitlint (conventional commits) is free if a
+#   commit convention is adopted.
+# ---------------------------------------------------------------------------
