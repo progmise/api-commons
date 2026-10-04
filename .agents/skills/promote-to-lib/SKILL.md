@@ -60,7 +60,7 @@ its local copy. Turns copy-paste into a single shared implementation.
 Use the `library-release` skill (bump per the version strategy — usually
 **patch/minor**; run `backward-compatibility-check` if unsure) and
 `./gradlew publishToMavenLocal -I .github/publish.init.gradle.kts` so consumers
-can resolve it locally before the tag is pushed.
+can resolve it locally before the Release workflow is run.
 
 ## Step 4: Update each consumer
 For every confirmed consumer:

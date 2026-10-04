@@ -1,0 +1,80 @@
+name: CI Checks
+
+# Runs on every pull request and is also invoked by the Integration and
+# Release workflows (workflow_call), so the same gates always apply.
+
+on:
+  pull_request:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build
+        run: ./gradlew assemble --no-daemon
+
+      - name: Test (with JaCoCo)
+        run: ./gradlew test --no-daemon -I .github/ci.init.gradle.kts
+
+      - name: Coverage summary
+        run: |
+          awk -F',' 'NR>1 {lm+=$8; lc+=$9; bm+=$6; bc+=$7} END {
+            printf "### Coverage\n" >> ENVIRON["GITHUB_STEP_SUMMARY"]
+            printf "- Lines: **%.1f%%** (%d/%d)\n", lc/(lc+lm)*100, lc, lc+lm >> ENVIRON["GITHUB_STEP_SUMMARY"]
+            printf "- Branches: **%.1f%%** (%d/%d)\n", (bc+bm)? bc/(bc+bm)*100 : 100, bc, bc+bm >> ENVIRON["GITHUB_STEP_SUMMARY"]
+          }' build/reports/jacoco/test/jacocoTestReport.csv
+
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Generate dependency lockfile
+        run: ./gradlew dependencies --write-locks --no-daemon -I .github/security.init.gradle.kts
+
+      - name: Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          scanners: 'vuln,secret'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
+          exit-code: '1'
+
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Semgrep SAST
+        run: pipx run semgrep scan --config p/java --error --metrics=off
+
+  summary:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [build, trivy, semgrep]
+    steps:
+      - name: Workflow summary
+        run: |
+          {
+            echo "### CI Checks results"
+            echo "| Job | Result |"
+            echo "|---|---|"
+            echo "| Build + Test | ${{ needs.build.result }} |"
+            echo "| Trivy (SCA + secrets) | ${{ needs.trivy.result }} |"
+            echo "| Semgrep (SAST) | ${{ needs.semgrep.result }} |"
+          } >> "$GITHUB_STEP_SUMMARY"

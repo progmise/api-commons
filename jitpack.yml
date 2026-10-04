@@ -1,0 +1,4 @@
+jdk:
+  - openjdk21
+install:
+  - ./gradlew build publishToMavenLocal -I .github/publish.init.gradle.kts

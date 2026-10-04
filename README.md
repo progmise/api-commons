@@ -62,12 +62,16 @@ publishing configuration. The workflow applies `.github/publish.init.gradle.kts`
 which injects the `com.vanniktech.maven.publish` plugin, GPG signing and all POM
 metadata at publish time:
 
-```bash
-git tag 0.3.0 && git push origin 0.3.0
-# → tag push triggers .github/workflows/publish.yml → publishToMavenCentral
-```
+1. Bump `version` in `build.gradle.kts` and merge to `main`.
+2. Run the **Release** workflow manually (Actions → Release → *Run workflow*) —
+   it validates the version, runs all CI checks, publishes to Central and
+   creates the tag + GitHub Release.
 
-Bump `version` in `build.gradle.kts` to match the tag.
+Development versions of any merged commit resolve via JitPack:
+`com.github.progmise:api-utils:<commit-sha>`.
+
+Every push to `main` also runs the **Integration** workflow (same checks as the
+PR `ci.yml`: build + tests + JaCoCo + Trivy + Semgrep).
 
 ### One-time setup
 

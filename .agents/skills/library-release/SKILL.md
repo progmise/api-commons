@@ -24,7 +24,8 @@ permissions:
 Drives a **coordinated release** of this shared library. Because consumers depend
 on it, a release is never just a version bump — it must respect backward
 compatibility and be followed by consumer updates. Publishing is fully automated:
-pushing a tag runs `.github/workflows/publish.yml` → `publishToMavenCentral`.
+running the **Release** workflow (manual dispatch) validates the version, runs
+the CI checks and calls `publishToMavenCentral`.
 
 ## When to Use
 - A change is ready to be published as a new library version.
@@ -56,15 +57,19 @@ version references so the docs stay in sync (docs-as-code).
 ```
 This also installs the version into local `~/.m2` for consumer verification.
 
-## Step 4: Commit & tag
+## Step 4: Commit & merge
 ```bash
 git commit -m "<description>"
-git tag <version>          # tag name must equal the version in build.gradle.kts
-git push origin main --tags
+git push origin main
 ```
+(Or merge the PR — `version` in `build.gradle.kts` must already hold the
+release version on `main`.)
 
-## Step 5: Verify the release
-- Check the GitHub Actions run: build → `publishToMavenCentral` → GH Release.
+## Step 5: Run the Release workflow
+- Actions → **Release** → *Run workflow* on `main`. It validates the version
+  (fails if the tag exists or is a SNAPSHOT), runs all CI checks, publishes and
+  creates the tag + GitHub Release.
+- Check the run: validate → ci → `publishToMavenCentral` → release.
 - With `mavenCentralAutomaticPublishing=true` the deployment is released
   automatically — verify on central.sonatype.com / search.maven.org before
   reporting the artifact as published (Central sync can take ~30 min).
@@ -77,7 +82,7 @@ with the user; warn about any not cloned):
 - Commit and push.
 
 ## Deliverables
-- New library version + tag + workflow run link.
+- New library version + tag + workflow run link (created by the workflow).
 - `.m2` install confirmation.
 - Per-consumer update status (updated / pending / not cloned).
 

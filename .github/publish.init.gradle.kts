@@ -27,6 +27,14 @@ initscript {
 allprojects {
     apply<MavenPublishPlugin>()
 
+    // Sign only when a key is provided (CI release). JitPack and local
+    // publishToMavenLocal runs without GPG env vars skip signing.
+    if (providers.environmentVariable("ORG_GRADLE_PROJECT_signingInMemoryKey").isPresent) {
+        extensions.configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
+            signAllPublications()
+        }
+    }
+
     tasks.withType<Javadoc>().configureEach {
         (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:none", "-quiet")
     }

@@ -52,8 +52,11 @@ export ORG_GRADLE_PROJECT_signingInMemoryKeyPassword="..."
 
 `build.gradle.kts` intentionally has **zero** publishing config — it is injected
 in CI by `.github/publish.init.gradle.kts` (applied with Gradle's `-I` flag).
-Pushing a tag runs `.github/workflows/publish.yml` → `publishToMavenCentral`
-with `SONATYPE_*`/`GPG_*` repository secrets. Bump `version` to match the tag.
+Bump `version`, merge to `main`, then run the **Release** workflow manually —
+it validates the version, runs the CI checks (`ci.yml`), publishes to
+Maven Central with the `SONATYPE_*`/`GPG_*` repository secrets and creates the
+tag + GitHub Release. Development versions of any merged commit resolve via
+JitPack (`com.github.progmise:api-utils:<sha>`).
 
 ## Consumers
 
