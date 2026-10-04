@@ -49,13 +49,20 @@ jobs:
       - name: Generate dependency lockfile
         run: ./gradlew dependencies --write-locks --no-daemon -I .github/security.init.gradle.kts
 
+      - name: Install Trivy
+        run: |
+          curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.75.0/trivy_0.75.0_Linux-64bit.tar.gz | tar -xz trivy
+          sudo mv trivy /usr/local/bin/
+          trivy version
+
       - name: Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.33.1
         with:
           scan-type: 'fs'
           scan-ref: '.'
           scanners: 'vuln,secret'
           severity: 'CRITICAL,HIGH'
+          skip-setup-trivy: true
           ignore-unfixed: true
           exit-code: '1'
 
@@ -84,3 +91,16 @@ jobs:
             echo "| Trivy (SCA + secrets) | ${{ needs.trivy.result }} |"
             echo "| Semgrep (SAST) | ${{ needs.semgrep.result }} |"
           } >> "$GITHUB_STEP_SUMMARY"
+
+# ---------------------------------------------------------------------------
+# Not ported from the reference pipeline (see README "Not ported"):
+# - Tracing/telemetry: needs an observability backend; free path is an OTel
+#   exporter to Grafana Cloud free tier (extra account + setup, skipped).
+# - Threat Modeling validation: enterprise-internal tool, no free equivalent.
+# - SCQA: SonarCloud is free for public repos only — could be enabled later.
+# - CodeQL: free for public repos only (this repo may be private).
+# - Required status checks on protected branches: pending first CI run to pin
+#   the exact check names.
+# - Commit/ticket validation: commitlint (conventional commits) is free if a
+#   commit convention is adopted.
+# ---------------------------------------------------------------------------
