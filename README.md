@@ -86,7 +86,7 @@ Repository secrets required by the workflow:
 | `SONATYPE_USERNAME` / `SONATYPE_TOKEN` | Central Portal user token (Account → Generate User Token) |
 | `GPG_PRIVATE_KEY` | ASCII-armored private key used for signing |
 | `GPG_PASSPHRASE` | The key's passphrase |
-| `GRAFANA_OTLP_ENDPOINT` | *(optional)* OTLP gateway URL for the `tracing` job (Grafana Cloud free tier) |
+| `GRAFANA_OTLP_ENDPOINT` | *(optional, **variable**)* OTLP gateway URL for the `tracing` job (Grafana Cloud free tier) |
 | `GRAFANA_OTLP_AUTH` | *(optional)* `base64("<instance-id>:<api-token>")` for that gateway |
 
 The namespace `io.github.progmise` must be verified in the Central Portal

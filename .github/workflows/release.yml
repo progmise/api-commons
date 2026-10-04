@@ -75,20 +75,20 @@ jobs:
           generate_release_notes: true
 
   # Emits one OTel span per job to Grafana Cloud (OTLP/HTTP). Skips silently
-  # unless GRAFANA_OTLP_ENDPOINT + GRAFANA_OTLP_AUTH secrets are configured.
+  # unless the GRAFANA_OTLP_ENDPOINT variable + GRAFANA_OTLP_AUTH secret are configured.
   tracing:
     runs-on: ubuntu-latest
     if: always()
     needs: [validate, ci, publish, release]
     env:
       JOB_RESULTS: ${{ toJSON(needs) }}
-      OTLP_ENDPOINT: ${{ secrets.GRAFANA_OTLP_ENDPOINT }}
+      OTLP_ENDPOINT: ${{ vars.GRAFANA_OTLP_ENDPOINT }}
       OTLP_AUTH: ${{ secrets.GRAFANA_OTLP_AUTH }}
     steps:
       - name: Emit run telemetry (OTLP/HTTP)
         run: |
           if [ -z "$OTLP_ENDPOINT" ] || [ -z "$OTLP_AUTH" ]; then
-            echo "GRAFANA_OTLP_* secrets not configured — skipping tracing"
+            echo "GRAFANA_OTLP_* not configured — skipping tracing"
             exit 0
           fi
           NOW=$(date +%s%N)
