@@ -3,9 +3,6 @@ name: Release
 # Manual release on main: development → PR → main, bump `version` in
 # build.gradle.kts, then run this workflow. It validates the version, runs
 # all CI checks, publishes to Maven Central and creates the tag + GH Release.
-#
-# Job numbers mark execution order (strictly sequential):
-# 01 Validate → 02 CI Checks → 03 Publish → 04 GitHub Release.
 
 on:
   workflow_dispatch:
@@ -15,7 +12,6 @@ permissions:
 
 jobs:
   validate:
-    name: "01 Validate version"
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -45,11 +41,9 @@ jobs:
           echo "Releasing $v"
 
   ci:
-    name: "02 CI Checks"
     uses: ./.github/workflows/ci.yml
 
   publish:
-    name: "03 Publish to Maven Central"
     needs: [validate, ci]
     runs-on: ubuntu-latest
     steps:
@@ -69,7 +63,6 @@ jobs:
         run: ./gradlew publishToMavenCentral --no-daemon -I .github/publish.init.gradle.kts
 
   release:
-    name: "04 GitHub Release"
     needs: [validate, publish]
     runs-on: ubuntu-latest
     steps:
