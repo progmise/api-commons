@@ -49,6 +49,12 @@ jobs:
       - name: Generate dependency lockfile
         run: ./gradlew dependencies --write-locks --no-daemon -I .github/security.init.gradle.kts
 
+      - name: Install Trivy
+        run: |
+          curl -sfL https://github.com/aquasecurity/trivy/releases/download/v0.65.0/trivy_0.65.0_Linux-64bit.tar.gz | tar -xz trivy
+          sudo mv trivy /usr/local/bin/
+          trivy version
+
       - name: Trivy vulnerability scan
         uses: aquasecurity/trivy-action@v0.33.1
         with:
