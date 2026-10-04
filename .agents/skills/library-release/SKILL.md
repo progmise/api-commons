@@ -60,16 +60,18 @@ This also installs the version into local `~/.m2` for consumer verification.
 ## Step 4: Commit & merge
 ```bash
 git commit -m "<description>"
-git push origin main
+git push origin <feature-branch>
+# PR → development → merge
+# then PR development → main → merge (release candidate reaches main)
 ```
-(Or merge the PR — `version` in `build.gradle.kts` must already hold the
-release version on `main`.)
+`version` in `build.gradle.kts` must already hold the release version on
+`main`.
 
 ## Step 5: Run the Release workflow
 - Actions → **Release** → *Run workflow* on `main`. It validates the version
-  (fails if the tag exists or is a SNAPSHOT), runs all CI checks, publishes and
-  creates the tag + GitHub Release.
-- Check the run: validate → ci → `publishToMavenCentral` → release.
+  (fails if not on `main`, if the tag exists or is a SNAPSHOT), runs all CI
+  checks, publishes and creates the tag + GitHub Release.
+- Check the run: 01 validate → 02 ci → 03 publish → 04 release.
 - With `mavenCentralAutomaticPublishing=true` the deployment is released
   automatically — verify on central.sonatype.com / search.maven.org before
   reporting the artifact as published (Central sync can take ~30 min).

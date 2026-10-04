@@ -1,14 +1,17 @@
 name: CI Checks
 
-# Runs on every pull request and is also invoked by the Integration and
-# Release workflows (workflow_call), so the same gates always apply.
+# Runs on every pull request (feature → development, and development → main)
+# and is also invoked by the Integration and Release workflows
+# (workflow_call), so the same gates always apply.
 
 on:
   pull_request:
   workflow_call:
 
+# Job numbers mark execution order: 01/02/03 run in parallel, 04 after them.
 jobs:
   build:
+    name: "01 Build & Test"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,6 +36,7 @@ jobs:
           }' build/reports/jacoco/test/jacocoTestReport.csv
 
   trivy:
+    name: "02 Trivy (SCA + secrets)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -56,6 +60,7 @@ jobs:
           exit-code: '1'
 
   semgrep:
+    name: "03 Semgrep (SAST)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -64,6 +69,7 @@ jobs:
         run: pipx run semgrep scan --config p/java --error --metrics=off
 
   summary:
+    name: "04 Summary"
     runs-on: ubuntu-latest
     if: always()
     needs: [build, trivy, semgrep]

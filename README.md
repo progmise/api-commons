@@ -62,16 +62,20 @@ publishing configuration. The workflow applies `.github/publish.init.gradle.kts`
 which injects the `com.vanniktech.maven.publish` plugin, GPG signing and all POM
 metadata at publish time:
 
-1. Bump `version` in `build.gradle.kts` and merge to `main`.
-2. Run the **Release** workflow manually (Actions → Release → *Run workflow*) —
-   it validates the version, runs all CI checks, publishes to Central and
-   creates the tag + GitHub Release.
+Branching is GitFlow: `development` is the default branch, `main` holds
+releases.
+
+1. Bump `version` in `build.gradle.kts` on `development`, PR `development` →
+   `main` and merge.
+2. Run the **Release** workflow manually on `main` (Actions → Release → *Run
+   workflow*) — it validates the version, runs all CI checks, publishes to
+   Central and creates the tag + GitHub Release.
 
 Development versions of any merged commit resolve via JitPack:
 `com.github.progmise:api-utils:<commit-sha>`.
 
-Every push to `main` also runs the **Integration** workflow (same checks as the
-PR `ci.yml`: build + tests + JaCoCo + Trivy + Semgrep).
+Every push to `development` or `main` runs the **Integration** workflow (same
+checks as the PR `ci.yml`: build + tests + JaCoCo + Trivy + Semgrep).
 
 ### One-time setup
 
