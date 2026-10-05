@@ -77,6 +77,10 @@ Development versions of any merged commit resolve via JitPack:
 Every push to `development` or `main` runs the **Integration** workflow (same
 checks as the PR `ci.yml`: build + tests + JaCoCo + Trivy + Semgrep).
 
+All workflows are **thin callers** — the pipeline logic lives centrally in
+[`progmise/reusable-workflows`](https://github.com/progmise/reusable-workflows)
+(`@v1`), so fixes propagate to every library at once.
+
 ### One-time setup
 
 Repository secrets required by the workflow:
