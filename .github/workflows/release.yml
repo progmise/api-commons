@@ -83,6 +83,7 @@ jobs:
     if: always()
     needs: [validate, ci, publish, release]
     permissions:
+      contents: read
       actions: read
     env:
       OTLP_ENDPOINT: ${{ vars.GRAFANA_OTLP_ENDPOINT }}
