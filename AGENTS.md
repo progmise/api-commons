@@ -47,6 +47,21 @@ gpg --batch --import key.asc
 ./mvnw -B -Prelease deploy -DaltDeploymentRepository=local::file:./target/mvn-local
 ```
 
+## Branches
+
+GitFlow: `development` is default, `main` holds releases. Name work branches
+`<type>/<snake_description>` (e.g. `feature/pagination_links`):
+
+| Prefix | Use | Base |
+|---|---|---|
+| `feature/` | new functionality | `development` |
+| `fix/` | bug fix | `development` |
+| `hotfix/` | urgent fix on released code | `main` → merge back to `development` |
+| `chore/` | tooling, deps, config | `development` |
+| `docs/` | documentation only | `development` |
+| `refactor/` | internal change, no API diff | `development` |
+| `sync/` | `development` → `main` syncs | — |
+
 ## Release
 
 Publishing config lives in `pom.xml` (`central-publishing` plugin, sources and
