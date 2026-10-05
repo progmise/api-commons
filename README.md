@@ -93,7 +93,10 @@ The namespace `io.github.progmise` must be verified in the Central Portal
 (automatic when the account is linked to the `progmise` GitHub account).
 
 Every CI run also uploads its reports as artifacts (30-day retention): test +
-JaCoCo HTML, `trivy-results.txt`, `semgrep-results.txt`.
+JaCoCo HTML, `trivy-results.json`, `semgrep-results.json`. The `tracing` job
+emits OTel spans (real per-job durations) and gauges (`ci.coverage.percent`,
+`ci.trivy.findings`, `ci.semgrep.findings`, `ci.job.duration_seconds`,
+`ci.jobs.*`) to Grafana Cloud when the `GRAFANA_OTLP_*` variable/secret are set.
 
 ## Not ported (possible future work)
 
