@@ -33,27 +33,27 @@ Keep it **generic** — no domain logic, no app-specific names (nothing like
   maps them to the shared error contract. Domain exceptions stay in the app with
   their own `@RestControllerAdvice`.
 - `RCache` must stay **fail-open**: Redis down ⇒ null/false, never throw.
-- Dependencies: public types in signatures ⇒ `api(...)`; internal only ⇒
-  `implementation(...)`.
+- Dependencies: this is a **Maven** project (`pom.xml`) — types used in public
+  signatures stay `compile` scope; servlet API is `provided`; tests are `test`.
 - Never add employer-specific/proprietary code, internal endpoints, or credentials.
 
 ## Verify before done
 
 ```bash
-./gradlew build    # compile + unit tests
+./mvnw -B verify    # compile + unit tests + JaCoCo report (target/site/jacoco/)
 
-# validate the full publishing pipeline locally (requires the signing env vars):
-export ORG_GRADLE_PROJECT_signingInMemoryKey="$(cat key.asc)"
-export ORG_GRADLE_PROJECT_signingInMemoryKeyPassword="..."
-./gradlew publishToMavenLocal -I .github/publish.init.gradle.kts
+# validate the full publishing pipeline locally (requires GPG key in the agent):
+gpg --batch --import key.asc
+./mvnw -B -Prelease deploy -DaltDeploymentRepository=local::file:./target/mvn-local
 ```
 
 ## Release
 
-`build.gradle.kts` intentionally has **zero** publishing config — it is injected
-in CI by `.github/publish.init.gradle.kts` (applied with Gradle's `-I` flag).
-Branching is GitFlow: `development` is the default branch (all work is PR'd
-there), `main` holds releases. To release: bump `version`, merge
+Publishing config lives in `pom.xml` (`central-publishing` plugin, sources and
+javadoc jars); the `release` profile adds GPG signing — CI activates it only on
+the publish step. Branching is GitFlow: `development` is the default branch
+(all work is PR'd there), `main` holds releases. To release: bump `<version>`
+in `pom.xml`, merge
 `development` → `main` via PR, then run the **Release** workflow manually on
 `main` — it validates the version, runs the CI checks (`ci.yml`), publishes to
 Maven Central with the `SONATYPE_*`/`GPG_*` repository secrets and creates the
