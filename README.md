@@ -1,12 +1,12 @@
-# api-utils
+# api-commons
 
 Shared Java utility library for Spring Boot APIs. Published to **Maven Central**
-as `io.github.progmise:api-utils`.
+as `io.github.progmise:api-commons`.
 
 ## What's inside
 
 ```
-io.github.progmise.utils
+io.github.progmise.commons
 ├── config/          Auto-configuration (ApiExceptionHandler, FeatureToggleHelper beans)
 ├── delivery/        ListPaginationDTO (HAL pagination links) + PaginationRequestBuilder
 ├── dto/             ApiError + ErrorsResponse — {"errors":[{"code","message","level","description"}]}
@@ -28,7 +28,7 @@ tokens: `cache.get(key, Schedule.class)` or
 
 ```kotlin
 dependencies {
-    implementation("io.github.progmise:api-utils:0.2.0")
+    implementation("io.github.progmise:api-commons:0.2.0")
 }
 ```
 
@@ -72,7 +72,7 @@ releases.
    Central and creates the tag + GitHub Release.
 
 Development versions of any merged commit resolve via JitPack:
-`com.github.progmise:api-utils:<commit-sha>`.
+`com.github.progmise:api-commons:<commit-sha>`.
 
 Every push to `development` or `main` runs the **Integration** workflow (same
 checks as the PR `ci.yml`: build + tests + JaCoCo + Trivy + Semgrep).
