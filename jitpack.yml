@@ -1,5 +1,4 @@
 jdk:
   - openjdk21
 install:
-  - curl -sfL https://raw.githubusercontent.com/progmise/reusable-workflows/v1/init/publish.init.gradle.kts -o /tmp/publish.init.gradle.kts
-  - ./gradlew build publishToMavenLocal -I /tmp/publish.init.gradle.kts
+  - ./mvnw -B -ntp install -DskipTests -Dgpg.skip
