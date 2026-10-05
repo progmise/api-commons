@@ -52,20 +52,19 @@ is instantiated explicitly — see the consuming projects for wiring examples.
 ## Development
 
 ```bash
-./gradlew build   # compile + unit tests
+./mvnw -B verify   # compile + unit tests + JaCoCo report
 ```
 
 ## Releasing
 
-Publishing is fully automated by GitHub Actions — `build.gradle.kts` carries **no**
-publishing configuration. The workflow applies `.github/publish.init.gradle.kts`,
-which injects the `com.vanniktech.maven.publish` plugin, GPG signing and all POM
-metadata at publish time:
+Publishing is fully automated by GitHub Actions — all artifact metadata and the
+`central-publishing` + sources/javadoc plugins live in `pom.xml`; signing lives
+in the `release` profile (activated by the release workflow only):
 
 Branching is GitFlow: `development` is the default branch, `main` holds
 releases.
 
-1. Bump `version` in `build.gradle.kts` on `development`, PR `development` →
+1. Bump `<version>` in `pom.xml` on `development`, PR `development` →
    `main` and merge.
 2. Run the **Release** workflow manually on `main` (Actions → Release → *Run
    workflow*) — it validates the version, runs all CI checks, publishes to

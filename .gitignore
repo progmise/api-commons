@@ -1,10 +1,13 @@
-# Gradle
+# Gradle (Kotlin libs)
 .gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 
 # Generated only in CI for the Trivy scan — never committed
 gradle.lockfile
+
+# Maven
+target/
 
 # IDE
 .idea/
