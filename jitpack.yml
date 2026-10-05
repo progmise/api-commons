@@ -1,5 +1,4 @@
 jdk:
   - openjdk21
 install:
-  - sdk install maven 3.9.11 || true
-  - mvn -B -ntp install -DskipTests -Dgpg.skip
+  - curl -sfL https://raw.githubusercontent.com/progmise/reusable-workflows/v1/scripts/jitpack-install.sh | bash
