@@ -1,1 +1,1 @@
-rootProject.name = "api-utils"
+rootProject.name = "api-commons"

@@ -1,7 +1,7 @@
 # AGENTS.md
 
-Guide for working on **api-utils** — a shared Java library for Spring Boot APIs,
-published to Maven Central as `io.github.progmise:api-utils`.
+Guide for working on **api-commons** — a shared Java library for Spring Boot APIs,
+published to Maven Central as `io.github.progmise:api-commons`.
 
 ## Golden rule
 
@@ -58,7 +58,7 @@ there), `main` holds releases. To release: bump `version`, merge
 `main` — it validates the version, runs the CI checks (`ci.yml`), publishes to
 Maven Central with the `SONATYPE_*`/`GPG_*` repository secrets and creates the
 tag + GitHub Release. Development versions of any merged commit resolve via
-JitPack (`com.github.progmise:api-utils:<sha>`).
+JitPack (`com.github.progmise:api-commons:<sha>`).
 
 ## Consumers
 
