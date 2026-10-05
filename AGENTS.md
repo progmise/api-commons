@@ -50,12 +50,13 @@ gpg --batch --import key.asc
 ## Branches
 
 GitFlow: `development` is default, `main` holds releases. Name work branches
-`<type>/<kebab-description>`:
+`<type>/<snake_description>` (e.g. `feature/pagination_links`):
 
 | Prefix | Use | Base |
 |---|---|---|
 | `feature/` | new functionality | `development` |
 | `fix/` | bug fix | `development` |
+| `bug/` | defect found in existing code | `development` |
 | `hotfix/` | urgent fix on released code | `main` → merge back to `development` |
 | `chore/` | tooling, deps, config | `development` |
 | `docs/` | documentation only | `development` |
