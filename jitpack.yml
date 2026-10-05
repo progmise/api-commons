@@ -1,4 +1,4 @@
 jdk:
   - openjdk21
 install:
-  - ./mvnw -B -ntp install -DskipTests -Dgpg.skip
+  - mvn -B -ntp install -DskipTests -Dgpg.skip
