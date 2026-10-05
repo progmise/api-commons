@@ -1,6 +1,6 @@
 ---
 name: code-review-java
-description: Iterative code quality improvement (naming, structure, complexity) for this Java/Gradle shared library (production code, tests, or both)
+description: Iterative code quality improvement (naming, structure, complexity) for this Java/Maven shared library (production code, tests, or both)
 argument-hint: "[scope: 'src/main', 'src/test', 'both', or a specific path/pattern]"
 allowed-tools:
   - read
@@ -14,7 +14,7 @@ permissions:
     - Read(AGENTS.md)
   ask:
     - Write(src/**)
-    - Exec(./gradlew *)
+    - Exec(./mvnw *)
 ---
 
 Act as a **Senior Software Engineer and Code Reviewer**.
@@ -81,8 +81,8 @@ package map, conventions, and especially the backward-compatibility rules.
 ### Library structure & conventions
 - Public API must stay consumable from Java **and** Kotlin — no Kotlin-only
   constructs in signatures.
-- Public types in signatures ⇒ `api(...)` dependency scope; internal ⇒
-  `implementation(...)`.
+- Public types in signatures ⇒ `compile` dependency scope; container-supplied ⇒
+  `provided`; lombok `provided`.
 - No business logic or secrets/keys in code or logs.
 
 ### Code style
@@ -126,7 +126,7 @@ Perform the work in **2 to 3 iterations**:
 3. **Iteration 3 (optional) — Polish**: consistency, edge cases, comments where
    they add clear value.
 
-**After each iteration**, run `./gradlew test` to verify nothing is broken.
+**After each iteration**, run `./mvnw -B -ntp test` to verify nothing is broken.
 
 ## Deliverables per iteration
 

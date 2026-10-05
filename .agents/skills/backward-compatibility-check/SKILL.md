@@ -10,10 +10,10 @@ allowed-tools:
 permissions:
   allow:
     - Read(src/**)
-    - Read(build.gradle.kts)
+    - Read(pom.xml)
     - Read(AGENTS.md)
   ask:
-    - Exec(./gradlew *)
+    - Exec(./mvnw *)
     - Exec(git *)
     - Exec(javap *)
 ---

@@ -10,11 +10,11 @@ allowed-tools:
   - glob
 permissions:
   allow:
-    - Read(build.gradle.kts)
+    - Read(pom.xml)
     - Read(AGENTS.md)
   ask:
-    - Write(build.gradle.kts)
-    - Exec(./gradlew *)
+    - Write(pom.xml)
+    - Exec(./mvnw *)
     - Exec(git *)
 ---
 
@@ -47,13 +47,13 @@ If unsure whether the change is breaking, run the `backward-compatibility-check`
 skill first. Confirm the target version with the user.
 
 ## Step 2: Bump version
-Edit `version` in `build.gradle.kts`. In the same change, **update `AGENTS.md`**
+Edit `<version>` in `pom.xml`. In the same change, **update `AGENTS.md`**
 version references so the docs stay in sync (docs-as-code).
 
 ## Step 3: Build, test, install
-`./gradlew build` must be green. Optionally verify the publish pipeline locally:
+`./mvnw -B -ntp verify` must be green. Optionally verify the publish pipeline locally:
 ```bash
-./gradlew publishToMavenLocal -I .github/publish.init.gradle.kts
+./mvnw -B -ntp install
 ```
 This also installs the version into local `~/.m2` for consumer verification.
 
@@ -64,7 +64,7 @@ git push origin <feature-branch>
 # PR → development → merge
 # then PR development → main → merge (release candidate reaches main)
 ```
-`version` in `build.gradle.kts` must already hold the release version on
+`<version>` in `pom.xml` must already hold the release version on
 `main`.
 
 ## Step 5: Run the Release workflow

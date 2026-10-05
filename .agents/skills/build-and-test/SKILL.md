@@ -1,6 +1,6 @@
 ---
 name: build-and-test
-description: Compile, test and locally install this Java/Gradle shared library (JDK 21, Gradle wrapper, zero publishing config in the build file)
+description: Compile, test and locally install this Java/Maven shared library (JDK 21, Maven wrapper, publishing config in pom.xml)
 allowed-tools:
   - read
   - exec
@@ -8,17 +8,17 @@ allowed-tools:
   - glob
 permissions:
   allow:
-    - Read(build.gradle.kts)
+    - Read(pom.xml)
     - Read(src/**)
   ask:
-    - Exec(./gradlew *)
+    - Exec(./mvnw *)
 ---
 
-# Skill: Build and Test — Java/Gradle shared library
+# Skill: Build and Test — Java/Maven shared library
 
 ## Description
 Step-by-step guide to compile, test and install this shared library. It is a
-**Gradle** project built with the wrapper (`./gradlew`) on Java 21.
+**Maven** project built with the wrapper (`./mvnw`) on Java 21.
 
 ## When to Use
 - Compiling/testing the library for the first time or on a new machine.
@@ -29,32 +29,29 @@ Step-by-step guide to compile, test and install this shared library. It is a
 
 ## Step 1: Environment
 - **JDK 21**. Set `JAVA_HOME` to a JDK 21 before building.
-- Confirm the version under test in `build.gradle.kts` (`version = "..."`).
+- Confirm the version under test in `pom.xml` (`<version>...</version>`).
 
 ## Step 2: Compile
 ```bash
-./gradlew compileJava
+./mvnw -B -ntp compile
 ```
 
 ## Step 3: Run tests
 ```bash
-./gradlew test
+./mvnw -B -ntp test
 ```
-Summarize results from `build/reports/tests/test/index.html` or the console
-(`events("passed","skipped","failed")` is enabled).
+Summarize results from `target/surefire-reports/` or the console.
 
 ## Step 4: Install to local `~/.m2` (for consumers)
 ```bash
-./gradlew publishToMavenLocal -I .github/publish.init.gradle.kts
+./mvnw -B -ntp install
 ```
-The init script injects the `com.vanniktech.maven.publish` plugin — the plain
-`build.gradle.kts` carries **no** publishing config by design. For real signing,
-export `ORG_GRADLE_PROJECT_signingInMemoryKey` /
-`ORG_GRADLE_PROJECT_signingInMemoryKeyPassword` first.
+Signing lives in the `release` profile (`-Prelease`). For real signing,
+import a GPG key first (`gpg --batch --import key.asc`).
 
 ## Step 5: Full check
 ```bash
-./gradlew build    # compile + tests
+./mvnw -B -ntp verify    # compile + tests + JaCoCo
 ```
 
 ---
@@ -63,12 +60,10 @@ export `ORG_GRADLE_PROJECT_signingInMemoryKey` /
 
 | Symptom | Root cause | Fix |
 |---|---|---|
-| `Cannot perform signing task ... no configured signatory` | GPG env vars not set | Export `ORG_GRADLE_PROJECT_signingInMemoryKey{,Password}`, or skip `-x signMavenPublication` |
-| `Extension of type 'JavaPluginExtension' does not exist` in init script | Plugin/config applied before `java-library` | Gate with `pluginManager.withPlugin("java-library") { }` |
-| `invalid publication: artifact file does not exist ... .asc` | `-x sign*` used but publication still references signatures | Provide signing env vars instead of skipping |
-| `Unchanged`/`UP-TO-DATE` hiding test results | Incremental build | `./gradlew test --rerun` |
+| `gpg: signing failed: No secret key` | GPG key not imported | `gpg --batch --import key.asc`, or omit `-Prelease` |
+| `-Prelease` fails asking for credentials | Central/Sonatype creds missing | Set `MAVEN_OPTS`/settings.xml server creds, or use `-DaltDeploymentRepository=local::file:./target/mvn-local` |
+| Stale results | Incremental build | `./mvnw -B -ntp clean verify` |
 
 ## Notes
-- Do **not** add publishing plugins/config to `build.gradle.kts` — that lives in
-  `.github/publish.init.gradle.kts` + `gradle.properties`.
+- Publishing config lives in `pom.xml`; signing only under the `release` profile.
 - Do **not** bump `version` as part of a build — see the `library-release` skill.

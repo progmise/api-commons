@@ -11,7 +11,7 @@ allowed-tools:
 permissions:
   allow:
     - Read(src/**)
-    - Read(build.gradle.kts)
+    - Read(pom.xml)
     - Read(AGENTS.md)
   ask:
     - Write(AGENTS.md)
@@ -42,7 +42,7 @@ code:
 3. **Auto-configurations** — the doc must list every entry in
    `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`
    with its beans and activation conditions.
-4. **Version / consuming** — the version mentioned matches `build.gradle.kts`;
+4. **Version / consuming** — the version mentioned matches `pom.xml`;
    the dependency example uses the current coordinate
    (`io.github.progmise:<artifact>:<version>`).
 5. **Consumers** — cross-check by searching the workspace for the artifact in
@@ -51,7 +51,7 @@ code:
 
 ## Process
 1. Enumerate the real state: list `src/main/java` packages/classes, read
-   `build.gradle.kts` `version`, read the `AutoConfiguration.imports` file,
+   `pom.xml` `<version>`, read the `AutoConfiguration.imports` file,
    grep `@ConditionalOnProperty`/`@ConfigurationProperties`.
 2. Diff against each targeted `AGENTS.md` section.
 3. Apply **minimal, targeted edits** — do not restructure the document or invent
