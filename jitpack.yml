@@ -1,5 +1,6 @@
 jdk:
   - openjdk21
 install:
-  - curl -sfL https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz -o /tmp/maven.tgz && tar -xzf /tmp/maven.tgz -C /tmp
+  - curl -fsSL --retry 3 https://archive.apache.org/dist/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.tar.gz -o /tmp/maven.tgz
+  - tar -xzf /tmp/maven.tgz -C /tmp
   - /tmp/apache-maven-3.9.11/bin/mvn -B -ntp install -DskipTests -Dgpg.skip
