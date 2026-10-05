@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   validate:
@@ -74,45 +75,28 @@ jobs:
           tag_name: ${{ needs.validate.outputs.version }}
           generate_release_notes: true
 
-  # Emits one OTel span per job to Grafana Cloud (OTLP/HTTP). Skips silently
-  # unless the GRAFANA_OTLP_ENDPOINT variable + GRAFANA_OTLP_AUTH secret are configured.
+  # Emits spans (real durations, via the Jobs API) + gauges to Grafana Cloud
+  # via OTLP/HTTP. Skips silently unless the GRAFANA_OTLP_ENDPOINT variable +
+  # GRAFANA_OTLP_AUTH secret are set.
   tracing:
     runs-on: ubuntu-latest
     if: always()
     needs: [validate, ci, publish, release]
+    permissions:
+      actions: read
     env:
-      JOB_RESULTS: ${{ toJSON(needs) }}
       OTLP_ENDPOINT: ${{ vars.GRAFANA_OTLP_ENDPOINT }}
       OTLP_AUTH: ${{ secrets.GRAFANA_OTLP_AUTH }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Download run reports
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: '*-report*'
+          path: dl
+
       - name: Emit run telemetry (OTLP/HTTP)
-        run: |
-          if [ -z "$OTLP_ENDPOINT" ] || [ -z "$OTLP_AUTH" ]; then
-            echo "GRAFANA_OTLP_* not configured — skipping tracing"
-            exit 0
-          fi
-          NOW=$(date +%s%N)
-          TRACE_ID=$(echo "${{ github.run_id }}${{ github.run_attempt }}${{ github.sha }}" | sha256sum | cut -c1-32)
-          SPANS="[]"
-          for job in validate ci publish release; do
-            result=$(echo "$JOB_RESULTS" | jq -r ".$job.result")
-            status=2; { [ "$result" = "success" ] || [ "$result" = "skipped" ]; } && status=1
-            span_id=$(echo "${{ github.run_id }}-$job" | md5sum | cut -c1-16)
-            SPANS=$(echo "$SPANS" | jq --arg n "$job" --arg t "$TRACE_ID" --arg s "$span_id" \
-              --arg st "$NOW" --arg r "$result" --argjson c "$status" \
-              '. + [{traceId:$t,spanId:$s,name:$n,kind:1,startTimeUnixNano:$st,endTimeUnixNano:$st,attributes:[{key:"job.result",value:{stringValue:$r}}],status:{code:$c}}]')
-          done
-          jq -n --arg repo "${{ github.repository }}" --arg wf "${{ github.workflow }}" \
-            --arg sha "${{ github.sha }}" --arg ref "${{ github.ref_name }}" \
-            --arg run "${{ github.run_id }}" --arg actor "${{ github.actor }}" --argjson spans "$SPANS" \
-            '{resourceSpans:[{resource:{attributes:[
-              {key:"service.name",value:{stringValue:$repo}},
-              {key:"ci.workflow",value:{stringValue:$wf}},
-              {key:"ci.run_id",value:{stringValue:$run}},
-              {key:"vcs.ref",value:{stringValue:$sha}},
-              {key:"vcs.branch",value:{stringValue:$ref}},
-              {key:"ci.actor",value:{stringValue:$actor}}]},
-              scopeSpans:[{scope:{name:"github-actions"},spans:$spans}]}]}' \
-            | curl -sf -X POST "$OTLP_ENDPOINT/v1/traces" \
-                -H "Authorization: Basic $OTLP_AUTH" -H "Content-Type: application/json" -d @-
-          echo "Telemetry emitted for run ${{ github.run_id }}"
+        run: bash .github/scripts/emit-telemetry.sh
