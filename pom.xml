@@ -61,6 +61,15 @@
         <artifactId>json-smart</artifactId>
         <version>${json-smart.version}</version>
       </dependency>
+      <!-- Jackson 3 (tools.jackson) pulled transitively by Spring 7 — bump ahead
+           of the Boot BOM for trivy findings -->
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>3.2.3</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
