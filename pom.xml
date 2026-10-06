@@ -6,7 +6,7 @@
 
   <groupId>io.github.progmise</groupId>
   <artifactId>api-commons</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.0</version>
   <packaging>jar</packaging>
 
   <name>api-commons</name>
@@ -40,7 +40,7 @@
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jackson.version>2.21.7</jackson.version>
-    <spring.version>6.2.19</spring.version>
+    <spring.version>7.0.9</spring.version>
     <!-- Force fixed versions on transitive dependencies (Trivy findings). -->
     <netty.version>4.1.137.Final</netty.version>
     <json-smart.version>2.5.2</json-smart.version>
@@ -60,6 +60,15 @@
         <groupId>net.minidev</groupId>
         <artifactId>json-smart</artifactId>
         <version>${json-smart.version}</version>
+      </dependency>
+      <!-- Jackson 3 (tools.jackson) pulled transitively by Spring 7 — bump ahead
+           of the Boot BOM for trivy findings -->
+      <dependency>
+        <groupId>tools.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>3.2.3</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -89,12 +98,17 @@
     <dependency>
       <groupId>org.springframework.hateoas</groupId>
       <artifactId>spring-hateoas</artifactId>
-      <version>2.5.3</version>
+      <version>3.1.2</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure</artifactId>
-      <version>3.5.14</version>
+      <version>4.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-hateoas</artifactId>
+      <version>4.1.1</version>
     </dependency>
     <dependency>
       <groupId>org.togglz</groupId>
@@ -132,7 +146,7 @@
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-core</artifactId>
-      <version>1.15.12</version>
+      <version>1.17.1</version>
     </dependency>
 
     <!-- Test -->
