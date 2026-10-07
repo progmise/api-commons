@@ -77,7 +77,9 @@ JitPack (`com.github.progmise:api-commons:<sha>`).
 
 ## Consumers
 
-- `amortization-api` (`C:\Users\Leonel\Documents\kotlin-workspace\amortization-api`)
+- `amortization-api` (`C:\Users\Leonel\Documents\kotlin-workspace\amortization-api`) — via JitPack pin, pending migration to Central + `app-*`
+- `loans-api` — `api-commons:0.3.0` from Maven Central
+- `java-maven-api-template` — `api-commons:0.3.0` from Maven Central
 
 When promoting code out of a consumer: move the generic shape here, keep domain
 logic in the app, and update **all** imports (sources, tests, yaml, docs).

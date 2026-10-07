@@ -28,7 +28,7 @@ tokens: `cache.get(key, Schedule.class)` or
 
 ```kotlin
 dependencies {
-    implementation("io.github.progmise:api-commons:0.2.0")
+    implementation("io.github.progmise:api-commons:0.3.0")
 }
 ```
 
