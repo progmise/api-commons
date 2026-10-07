@@ -21,7 +21,7 @@ io.github.progmise.commons
 
 The API surface is plain Java (no Kotlin-only constructs), so it can be consumed
 idiomatically from Java and Kotlin. Generic deserialization uses explicit type
-tokens: `cache.get(key, Schedule.class)` or
+tokens: `cache.get(key, User.class)` or
 `cache.getObject(key, new TypeReference<List<X>>() {})`.
 
 ## Usage
@@ -47,7 +47,9 @@ is instantiated explicitly — see the consuming projects for wiring examples.
 
 ## Consumers
 
-- `amortization-api` — schedules, validators, cache-aside, feature toggles.
+- `loans-api` — error contract, validators, `RCache` cache-aside, `FeatureToggleHelper` (`0.3.0` via Central).
+- `java-maven-api-template` — same shared infra for generated services (`0.3.0` via Central).
+- `amortization-api` — schedules, validators, cache-aside, feature toggles (JitPack pin; Central migration pending).
 
 ## Development
 
@@ -96,7 +98,8 @@ The namespace `io.github.progmise` must be verified in the Central Portal
 (automatic when the account is linked to the `progmise` GitHub account).
 
 Every CI run also uploads its reports as artifacts (30-day retention): test +
-JaCoCo HTML, `trivy-results.json`, `semgrep-results.json`. The `tracing` job
+JaCoCo HTML, `trivy-results.json`, `semgrep-results.json`, `japicmp.xml`
+(API compat). The `tracing` job
 emits OTel spans (real per-job durations) and gauges (`ci.coverage.percent`,
 `ci.trivy.findings`, `ci.semgrep.findings`, `ci.job.duration_seconds`,
 `ci.jobs.*`) to Grafana Cloud when the `GRAFANA_OTLP_*` variable/secret are set.
