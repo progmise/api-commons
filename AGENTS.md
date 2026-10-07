@@ -47,12 +47,28 @@ gpg --batch --import key.asc
 ./mvnw -B -Prelease deploy -DaltDeploymentRepository=local::file:./target/mvn-local
 ```
 
+## Branches
+
+GitFlow: `main` is the default branch and holds releases; `development` is
+the integration branch. Name work branches
+`<type>/<snake_description>` (e.g. `feature/pagination_links`):
+
+| Prefix | Use | Base |
+|---|---|---|
+| `feature/` | new functionality | `development` |
+| `fix/` | bug fix | `development` |
+| `hotfix/` | urgent fix on released code | `main` → merge back to `development` |
+| `chore/` | tooling, deps, config | `development` |
+| `docs/` | documentation only | `development` |
+| `refactor/` | internal change, no API diff | `development` |
+| `sync/` | `development` → `main` syncs | — |
+
 ## Release
 
 Publishing config lives in `pom.xml` (`central-publishing` plugin, sources and
 javadoc jars); the `release` profile adds GPG signing — CI activates it only on
-the publish step. Branching is GitFlow: `development` is the default branch
-(all work is PR'd there), `main` holds releases. To release: bump `<version>`
+the publish step. Branching is GitFlow: all work is PR'd to `development`
+(the integration branch), `main` holds releases. To release: bump `<version>`
 in `pom.xml`, merge
 `development` → `main` via PR, then run the **Release** workflow manually on
 `main` — it validates the version, runs the CI checks (`ci.yml`), publishes to
@@ -62,7 +78,9 @@ JitPack (`com.github.progmise:api-commons:<sha>`).
 
 ## Consumers
 
-- `amortization-api` (`C:\Users\Leonel\Documents\kotlin-workspace\amortization-api`)
+- `amortization-api` (`C:\Users\Leonel\Documents\kotlin-workspace\amortization-api`) — via JitPack pin, pending migration to Central + `app-*`
+- `loans-api` — `api-commons:0.3.0` from Maven Central
+- `java-maven-api-template` — `api-commons:0.3.0` from Maven Central
 
 When promoting code out of a consumer: move the generic shape here, keep domain
 logic in the app, and update **all** imports (sources, tests, yaml, docs).
