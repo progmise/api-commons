@@ -49,7 +49,8 @@ gpg --batch --import key.asc
 
 ## Branches
 
-GitFlow: `development` is default, `main` holds releases. Name work branches
+GitFlow: `main` is the default branch and holds releases; `development` is
+the integration branch. Name work branches
 `<type>/<snake_description>` (e.g. `feature/pagination_links`):
 
 | Prefix | Use | Base |
@@ -66,8 +67,8 @@ GitFlow: `development` is default, `main` holds releases. Name work branches
 
 Publishing config lives in `pom.xml` (`central-publishing` plugin, sources and
 javadoc jars); the `release` profile adds GPG signing — CI activates it only on
-the publish step. Branching is GitFlow: `development` is the default branch
-(all work is PR'd there), `main` holds releases. To release: bump `<version>`
+the publish step. Branching is GitFlow: all work is PR'd to `development`
+(the integration branch), `main` holds releases. To release: bump `<version>`
 in `pom.xml`, merge
 `development` → `main` via PR, then run the **Release** workflow manually on
 `main` — it validates the version, runs the CI checks (`ci.yml`), publishes to
